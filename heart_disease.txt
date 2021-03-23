@@ -1,0 +1,44 @@
+#heart disease detection using machine learning
+import numpy as np
+import pandas as pd
+Cleveland_data="heart_diseae_data.csv"
+np.set_printoptions(threshold=np.sys.maxsize)
+names = ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg',
+'thalach', 'exang', 'oldpeak', 'slope', 'ca',
+'thal','heartdisease']
+
+heartDisease = pd.read_csv(Cleveland_data, names=names)
+heartDisease.head()
+
+del heartDisease['ca']
+del heartDisease['slope']
+del heartDisease['thal']
+del heartDisease['oldpeak']
+
+heartDisease = heartDisease.replace('?', np.nan)
+heartDisease.dtypes
+heartDisease.columns
+
+from pgmpy.models import BayesianModel
+from pgmpy.estimators import MaximumLikelihoodEstimator
+
+model = BayesianModel(
+[('age', 'trestbps'), ('age', 'fbs'), ('sex', 'trestbps'), ('sex',
+'trestbps'),
+('heartdisease', 'chol')])
+model.fit(heartDisease, estimator=MaximumLikelihoodEstimator)
+print(model.get_cpds('age'))
+print(model.get_cpds('chol'))
+print(model.get_cpds('sex'))
+model.get_independencies()
+
+from pgmpy.inference import VariableElimination
+
+HeartDisease_infer = VariableElimination(model)
+q = HeartDisease_infer.query(variables=['heartdisease'],
+evidence={'age': 28})
+print(q)
+q = HeartDisease_infer.query(variables=['heartdisease'],
+evidence={'chol': 100})
+
+print(q)
